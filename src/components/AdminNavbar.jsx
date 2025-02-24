@@ -125,7 +125,7 @@ function AdminNavbar() {
                     name="theme-dropdown"
                     className="theme-controller btn btn-sm btn-block btn-ghost justify-start"
                     aria-label="Default"
-                    value="light"
+                    value="cupcake"
                   />
                 </li>
                 <li>
@@ -142,17 +142,8 @@ function AdminNavbar() {
                     type="radio"
                     name="theme-dropdown"
                     className="theme-controller btn btn-sm btn-block btn-ghost justify-start"
-                    aria-label="Retro"
-                    value="retro"
-                  />
-                </li>
-                <li>
-                  <input
-                    type="radio"
-                    name="theme-dropdown"
-                    className="theme-controller btn btn-sm btn-block btn-ghost justify-start"
-                    aria-label="Cyberpunk"
-                    value="cyberpunk"
+                    aria-label="CMYK"
+                    value="cmyk"
                   />
                 </li>
                 <li>
