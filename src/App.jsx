@@ -8,6 +8,7 @@ import Users from './pages/Users';
 import CarForm from './pages/CarForm';
 import ProtectedRoute from './components/ProtectedRoute';
 import NavigationHandler from './components/NavigationHandler';
+import BookingForm from './pages/BookingForm';
 
 function App() {
   return (
@@ -55,6 +56,22 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/booking-form"
+          element={
+            <ProtectedRoute>
+              <BookingForm />
+            </ProtectedRoute>
+          }
+        />  
+        <Route
+          path="/booking-form/:bookingId"
+          element={
+            <ProtectedRoute>
+              <BookingForm />
+            </ProtectedRoute>
+          }
+        />  
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
