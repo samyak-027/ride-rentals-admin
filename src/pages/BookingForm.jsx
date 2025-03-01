@@ -7,38 +7,60 @@ import Loader from "../components/Loader";
 function BookingForm() {
   const { bookingId } = useParams();
   const navigate = useNavigate();
+  const [cars, setCars] = useState([]);
+  const [users, setUsers] = useState([]);
   const [bookingData, setBookingData] = useState({
-    carName: "",
-    userName: "",
+    car: "",
+    user: "",
     startDate: "",
     endDate: "",
     from: "",
     to: "",
   });
-  const [loading, setLoading] = useState(!!bookingId);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Fetch available cars and users, and booking details (if updating)
   useEffect(() => {
-    if (bookingId) {
-      fetch(`http://localhost:5007/api/bookings/${bookingId}`)
-        .then((res) => res.json())
-        .then((data) => {
+    const fetchData = async () => {
+      try {
+        const [carsResponse, usersResponse] = await Promise.all([
+          fetch("http://localhost:5007/api/cars/for-booking"),
+          fetch("http://localhost:5007/api/users/for-booking"),
+        ]);
+
+        if (!carsResponse.ok) throw new Error("Failed to fetch cars");
+        if (!usersResponse.ok) throw new Error("Failed to fetch users");
+
+        const carsData = await carsResponse.json();
+        const usersData = await usersResponse.json();
+
+        setCars(Array.isArray(carsData.cars) ? carsData.cars : carsData);
+        setUsers(Array.isArray(usersData.users) ? usersData.users : usersData);
+
+        if (bookingId) {
+          const bookingRes = await fetch(`http://localhost:5007/api/bookings/${bookingId}`);
+          if (!bookingRes.ok) throw new Error("Failed to fetch booking");
+          const booking = await bookingRes.json();
+
           setBookingData({
-            carName: data.car?.name || "",
-            userName: data.user?.name || "",
-            startDate: data.startDate,
-            endDate: data.endDate,
-            from: data.from,
-            to: data.to,
+            car: booking.car?._id || "",
+            user: booking.user?._id || "",
+            startDate: booking.startDate,
+            endDate: booking.endDate,
+            from: booking.from,
+            to: booking.to,
           });
-          setLoading(false);
-        })
-        .catch((err) => {
-          console.error(err);
-          setError("Failed to load booking data");
-          setLoading(false);
-        });
-    }
+        }
+        setLoading(false);
+      } catch (err) {
+        console.error(err);
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [bookingId]);
 
   const handleChange = (e) => {
@@ -49,20 +71,21 @@ function BookingForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
+
     const endpoint = bookingId
       ? `http://localhost:5007/api/bookings/update/${bookingId}`
       : "http://localhost:5007/api/bookings/new-booking";
-    const method = bookingId ? "PUT" : "POST";
 
     try {
       const res = await fetch(endpoint, {
-        method,
+        method: bookingId ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(bookingData),
       });
-      const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "Failed to save booking");
+        const errMsg = await res.text();
+        throw new Error(errMsg);
       }
       navigate("/bookings");
     } catch (err) {
@@ -93,26 +116,38 @@ function BookingForm() {
         {error && <div className="alert alert-error mb-4">{error}</div>}
         <form onSubmit={handleSubmit} className="max-w-lg mx-auto space-y-4">
           <div>
-            <label className="block mb-1">Car Name</label>
-            <input
-              type="text"
-              name="carName"
-              value={bookingData.carName}
+            <label className="block mb-1">Select Car</label>
+            <select
+              name="car"
+              value={bookingData.car}
               onChange={handleChange}
-              className="input input-bordered w-full"
+              className="select select-bordered w-full"
               required
-            />
+            >
+              <option value="">Select Car</option>
+              {cars.map((car) => (
+                <option key={car._id} value={car._id}>
+                  {car.name} ({car.model})
+                </option>
+              ))}
+            </select>
           </div>
           <div>
-            <label className="block mb-1">User Name</label>
-            <input
-              type="text"
-              name="userName"
-              value={bookingData.userName}
+            <label className="block mb-1">Select User</label>
+            <select
+              name="user"
+              value={bookingData.user}
               onChange={handleChange}
-              className="input input-bordered w-full"
+              className="select select-bordered w-full"
               required
-            />
+            >
+              <option value="">Select User</option>
+              {users.map((user) => (
+                <option key={user._id} value={user._id}>
+                  {user.name} ({user.email})
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="block mb-1">Journey Start Date</label>
