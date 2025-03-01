@@ -28,6 +28,7 @@ function Bookings() {
   const handleDeleteBooking = (bookingId) => {
     fetch(`http://localhost:5007/api/bookings/${bookingId}`, {
       method: "DELETE",
+      credentials: "include",
     })
       .then((res) => res.json())
       .then(() => {
