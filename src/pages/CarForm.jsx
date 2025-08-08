@@ -9,6 +9,7 @@ function CarForm() {
   const [carData, setCarData] = useState({
     name: '',
     model: '',
+    category:'',
     capacity: '',
     fueltype: '',
     pricePerDay: '',
@@ -29,6 +30,7 @@ function CarForm() {
           setCarData({
             name: data.name,
             model: data.model,
+            category: data.category,
             capacity: data.capacity,
             fueltype: data.fueltype,
             pricePerDay: data.pricePerDay,
@@ -66,6 +68,7 @@ function CarForm() {
     if (
       !carData.name ||
       !carData.model ||
+      !carData.category ||
       !carData.capacity ||
       !carData.fueltype ||
       !carData.pricePerDay
@@ -86,6 +89,7 @@ function CarForm() {
     const formData = new FormData();
     formData.append('name', carData.name);
     formData.append('model', carData.model);
+    formData.append('category', carData.category);
     formData.append('capacity', carData.capacity);
     formData.append('fueltype', carData.fueltype);
     formData.append('pricePerDay', carData.pricePerDay);
@@ -116,6 +120,7 @@ function CarForm() {
         setCarData({
           name: '',
           model: '',
+          category: '',
           capacity: '',
           fueltype: '',
           pricePerDay: '',
@@ -177,6 +182,23 @@ function CarForm() {
               className="input input-bordered w-full"
               required
             />
+          </div>
+          <div>
+            <label className="block mb-1">Category</label>
+            <select
+              name="category"
+              value={carData.category}
+              onChange={handleChange}
+              className="select select-bordered w-full"
+              required
+            >
+              <option value="">Select Car Category</option>
+              <option value="Hatchback">Hatchback</option>
+              <option value="Sedan">Sedan</option>
+              <option value="SUV">SUV</option>
+              <option value="Sports Car">Sports Car</option>
+              <option value="Van">Van</option>
+            </select>
           </div>
           <div>
             <label className="block mb-1">Capacity</label>

@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import AdminNavbar from "../components/AdminNavbar";
 import Loader from "../components/Loader";
+import { CountrySelect, StateSelect, CitySelect } from "react-country-state-city";
+import "react-country-state-city/dist/react-country-state-city.css";
 
 function BookingForm() {
   const { bookingId } = useParams();
@@ -12,6 +14,8 @@ function BookingForm() {
   const [bookingData, setBookingData] = useState({
     car: "",
     user: "",
+    userName: "",
+    userEmail: "",
     startDate: "",
     endDate: "",
     from: "",
@@ -20,7 +24,13 @@ function BookingForm() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Fetch available cars and users, and booking details (if updating)
+  // Location state for "from" and "to"
+  const [selectedCountry, setSelectedCountry] = useState(null);
+  const [fromState, setFromState] = useState(null);
+  const [fromCity, setFromCity] = useState(null);
+  const [toState, setToState] = useState(null);
+  const [toCity, setToCity] = useState(null);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -42,15 +52,17 @@ function BookingForm() {
           const bookingRes = await fetch(`http://localhost:5007/api/bookings/${bookingId}`);
           if (!bookingRes.ok) throw new Error("Failed to fetch booking");
           const booking = await bookingRes.json();
-
           setBookingData({
             car: booking.car?._id || "",
             user: booking.user?._id || "",
+            userName: booking.user?.name || "",
+            userEmail: booking.user?.email || "",
             startDate: booking.startDate,
             endDate: booking.endDate,
             from: booking.from,
             to: booking.to,
           });
+          // Optionally, parse booking.from/to to pre-populate dropdowns.
         }
         setLoading(false);
       } catch (err) {
@@ -68,10 +80,22 @@ function BookingForm() {
     setBookingData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Combine location selections into a single string before submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+
+    const fromLocation =
+      fromCity && fromState && selectedCountry
+        ? `${fromCity.name}, ${fromState.name}, ${selectedCountry.name}`
+        : bookingData.from;
+    const toLocation =
+      toCity && toState && selectedCountry
+        ? `${toCity.name}, ${toState.name}, ${selectedCountry.name}`
+        : bookingData.to;
+    
+    const submissionData = { ...bookingData, from: fromLocation, to: toLocation };
 
     const endpoint = bookingId
       ? `http://localhost:5007/api/bookings/update/${bookingId}`
@@ -81,7 +105,7 @@ function BookingForm() {
       const res = await fetch(endpoint, {
         method: bookingId ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(bookingData),
+        body: JSON.stringify(submissionData),
       });
       if (!res.ok) {
         const errMsg = await res.text();
@@ -95,16 +119,7 @@ function BookingForm() {
     }
   };
 
-  if (loading) {
-    return (
-      <>
-        <AdminNavbar />
-        <div className="p-4">
-          <Loader />
-        </div>
-      </>
-    );
-  }
+  const todayStr = new Date().toISOString().split("T")[0];
 
   return (
     <>
@@ -114,89 +129,157 @@ function BookingForm() {
           {bookingId ? "Update Booking" : "New Booking"}
         </h1>
         {error && <div className="alert alert-error mb-4">{error}</div>}
-        <form onSubmit={handleSubmit} className="max-w-lg mx-auto space-y-4">
-          <div>
-            <label className="block mb-1">Select Car</label>
-            <select
-              name="car"
-              value={bookingData.car}
-              onChange={handleChange}
-              className="select select-bordered w-full"
-              required
+        {loading ? (
+          <Loader />
+        ) : (
+          <form onSubmit={handleSubmit} className="max-w-lg mx-auto space-y-4">
+            <div>
+              <label className="block mb-1">Select Car</label>
+              <select
+                name="car"
+                value={bookingData.car}
+                onChange={handleChange}
+                className="select select-bordered w-full"
+                required
+              >
+                <option value="">Select Car</option>
+                {cars.map((car) => (
+                  <option key={car._id} value={car._id}>
+                    {car.name} ({car.model})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              {bookingId ? (
+                <>
+                  <label className="block mb-1">User</label>
+                  <div className="p-2 border rounded">
+                    {bookingData.userName} ({bookingData.userEmail})
+                  </div>
+                </>
+              ) : (
+                <>
+                  <label className="block mb-1">Select User</label>
+                  <select
+                    name="user"
+                    value={bookingData.user}
+                    onChange={handleChange}
+                    className="select select-bordered w-full"
+                    required
+                  >
+                    <option value="">Select User</option>
+                    {users.map((user) => (
+                      <option key={user._id} value={user._id}>
+                        {user.name} ({user.email})
+                      </option>
+                    ))}
+                  </select>
+                </>
+              )}
+            </div>
+            <div>
+              <label className="block mb-1">Journey Start Date</label>
+              <input
+                type="date"
+                name="startDate"
+                value={
+                  bookingData.startDate
+                    ? bookingData.startDate.substring(0, 10)
+                    : ""
+                }
+                onChange={handleChange}
+                className="input input-bordered w-full"
+                required
+                min={todayStr}
+              />
+            </div>
+            <div>
+              <label className="block mb-1">Journey End Date</label>
+              <input
+                type="date"
+                name="endDate"
+                value={
+                  bookingData.endDate
+                    ? bookingData.endDate.substring(0, 10)
+                    : ""
+                }
+                onChange={handleChange}
+                className="input input-bordered w-full"
+                required
+                min={
+                  bookingData.startDate
+                    ? bookingData.startDate.substring(0, 10)
+                    : todayStr
+                }
+              />
+            </div>
+            {/* Location Selection */}
+            <div>
+              <h6 className="mb-1">Select Country</h6>
+              <CountrySelect
+                containerClassName="form-group"
+                inputClassName="input input-bordered w-full"
+                onChange={setSelectedCountry}
+                placeHolder="Select Country"
+              />
+            </div>
+            <div>
+              <h6 className="mb-1">Select From State</h6>
+              <StateSelect
+                countryid={selectedCountry?.id}
+                containerClassName="form-group"
+                inputClassName="input input-bordered w-full"
+                onChange={setFromState}
+                placeHolder="Select State"
+              />
+            </div>
+            <div>
+              <h6 className="mb-1">Select From City</h6>
+              <CitySelect
+                countryid={selectedCountry?.id}
+                stateid={fromState?.id}
+                containerClassName="form-group"
+                inputClassName="input input-bordered w-full"
+                onChange={setFromCity}
+                placeHolder="Select City"
+              />
+            </div>
+            <div>
+              <h6 className="mb-1">Select To State</h6>
+              <StateSelect
+                countryid={selectedCountry?.id}
+                containerClassName="form-group"
+                inputClassName="input input-bordered w-full"
+                onChange={setToState}
+                placeHolder="Select State"
+              />
+            </div>
+            <div>
+              <h6 className="mb-1">Select To City</h6>
+              <CitySelect
+                countryid={selectedCountry?.id}
+                stateid={toState?.id}
+                containerClassName="form-group"
+                inputClassName="input input-bordered w-full"
+                onChange={setToCity}
+                placeHolder="Select City"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="btn btn-primary w-full"
+              disabled={loading}
             >
-              <option value="">Select Car</option>
-              {cars.map((car) => (
-                <option key={car._id} value={car._id}>
-                  {car.name} ({car.model})
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block mb-1">Select User</label>
-            <select
-              name="user"
-              value={bookingData.user}
-              onChange={handleChange}
-              className="select select-bordered w-full"
-              required
-            >
-              <option value="">Select User</option>
-              {users.map((user) => (
-                <option key={user._id} value={user._id}>
-                  {user.name} ({user.email})
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block mb-1">Journey Start Date</label>
-            <input
-              type="date"
-              name="startDate"
-              value={bookingData.startDate ? bookingData.startDate.substring(0, 10) : ""}
-              onChange={handleChange}
-              className="input input-bordered w-full"
-              required
-            />
-          </div>
-          <div>
-            <label className="block mb-1">Journey End Date</label>
-            <input
-              type="date"
-              name="endDate"
-              value={bookingData.endDate ? bookingData.endDate.substring(0, 10) : ""}
-              onChange={handleChange}
-              className="input input-bordered w-full"
-              required
-            />
-          </div>
-          <div>
-            <label className="block mb-1">From</label>
-            <input
-              type="text"
-              name="from"
-              value={bookingData.from}
-              onChange={handleChange}
-              className="input input-bordered w-full"
-              required
-            />
-          </div>
-          <div>
-            <label className="block mb-1">To</label>
-            <input
-              type="text"
-              name="to"
-              value={bookingData.to}
-              onChange={handleChange}
-              className="input input-bordered w-full"
-              required
-            />
-          </div>
-          <button type="submit" className="btn btn-primary w-full" disabled={loading}>
-            {loading ? "Saving..." : bookingId ? "Update Booking" : "Create Booking"}
-          </button>
-        </form>
+              {loading
+                ? "Saving..."
+                : bookingId
+                ? "Update Booking"
+                : "Create Booking"}
+            </button>
+          </form>
+        )}
       </div>
     </>
   );

@@ -13,16 +13,18 @@ function BookingCard({ booking, onUpdate, onDelete }) {
         <p>
           Car: {booking.car?.name} {booking.car?.model}
         </p>
+        <p>Journey Start: {new Date(booking.startDate).toLocaleDateString()}</p>
+        <p>Journey End: {new Date(booking.endDate).toLocaleDateString()}</p>
+        <p>Total Cost: ₹{booking.totalCost}</p>
         <p>
-          Journey Start: {new Date(booking.startDate).toLocaleDateString()}
+          Booking Date: {new Date(booking.createdAt).toLocaleDateString()}{" "}
+          {new Date(booking.createdAt).toLocaleTimeString()}
         </p>
         <p>
-          Journey End: {new Date(booking.endDate).toLocaleDateString()}
+          Updated At: {new Date(booking.updatedAt).toLocaleDateString()}{" "}
+          {new Date(booking.updatedAt).toLocaleTimeString()}
         </p>
-        <p>Total Cost: ${booking.totalCost}</p>
-        <p>
-          Booking Date: {new Date(booking.createdAt).toLocaleDateString()}
-        </p>
+
         <div className="flex justify-end gap-2 mt-4">
           <button
             onClick={() => onUpdate(booking)}

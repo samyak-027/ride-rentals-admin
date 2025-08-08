@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import EditCarIcon from '../assets/update-car.svg';
+import RuppeIcon from '../assets/ruppe.svg';
 
 function CarCard({ car, onDelete }) {
   const [showModal, setShowModal] = useState(false);
@@ -24,25 +25,34 @@ function CarCard({ car, onDelete }) {
         <div className="card-body">
           <h2 className="card-title">{car.name}</h2>
           <p>Model: {car.model}</p>
+          <p>Category: {car.category}</p>
           <p>Capacity: {car.capacity}</p>
           <p>Fuel: {car.fueltype}</p>
-          <p>Price Per Day: ${car.pricePerDay}</p>
-          <div className="card-actions justify-end">
-            {/* Edit Button */}
-            <button 
-              onClick={handleEdit} 
-              className="btn btn-success btn-sm"
-            >
-              <img src={EditCarIcon} alt="Edit Car" className="w-6 h-6" />
-            </button>
-            
-            {/* Delete Button */}
-            <button 
-              onClick={() => setShowModal(true)} 
-              className="btn btn-error btn-sm"
-            >
-              <img src="/delete-car.svg" alt="Delete Car" className="w-6 h-6" />
-            </button>
+          <p>Price Per Day: ₹{car.pricePerDay}</p>
+          
+          {/* New Flex Container for Checkbox (Left) & Action Buttons (Right) */}
+          <div className="flex justify-between items-center mt-4">
+            <label className="flex items-center cursor-pointer">
+              <input type="checkbox" className="checkbox checkbox-accent" />
+              <span className="ml-2 text-sm">Unavailable</span>
+            </label>
+            <div className="card-actions">
+              {/* Edit Button */}
+              <button 
+                onClick={handleEdit} 
+                className="btn btn-success btn-sm"
+              >
+                <img src={EditCarIcon} alt="Edit Car" className="w-6 h-6" />
+              </button>
+              
+              {/* Delete Button */}
+              <button 
+                onClick={() => setShowModal(true)} 
+                className="btn btn-error btn-sm"
+              >
+                <img src="/delete-car.svg" alt="Delete Car" className="w-6 h-6" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
