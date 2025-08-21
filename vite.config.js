@@ -8,8 +8,11 @@ export default defineConfig({
     tailwindcss()
   ],
   server: {
-    host: '0.0.0.0', // <- Allows access from external hosts (e.g., EC2 DNS)
-    allowedHosts:true,
+    host: '0.0.0.0',
+    // Change this line
+    allowedHosts: ['.compute-1.amazonaws.com'], // ✅ More robust solution
+    // Or, for a quick fix, use the specific hostname:
+    // allowedHosts: ['ec2-50-16-20-9.compute-1.amazonaws.com'], 
     port: 5173,
     proxy: {
       '/api': {
