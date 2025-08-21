@@ -9,6 +9,7 @@ export default defineConfig({
   ],
   server: {
     host: '0.0.0.0', // <- Allows access from external hosts (e.g., EC2 DNS)
+    allowedHosts:true,
     port: 5173,
     proxy: {
       '/api': {
