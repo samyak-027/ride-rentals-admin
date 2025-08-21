@@ -9,6 +9,11 @@ export default defineConfig({
     tailwindcss()
   ],
   server: {
+    host: '0.0.0.0', // listen on all network interfaces
+    port: 5173,
+    allowedHosts: [
+      'ec2-50-16-20-9.compute-1.amazonaws.com' // ✅ allow your EC2 public DNS
+    ],
     proxy: {
       '/api': {
         target: 'http://localhost:5007',
